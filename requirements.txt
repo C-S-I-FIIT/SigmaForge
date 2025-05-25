@@ -1,0 +1,10 @@
+pysigma>=0.11.19
+pySigma-backend-elasticsearch>=1.1.5
+pySigma-pipeline-sysmon>=1.0.4
+jinja2>=3.1.6
+pyyaml>=6.0.2
+click>=8.1.8
+requests>=2.32.3
+rich>=13.9.4
+tqdm>=4.67.1
+loguru>=0.7.3

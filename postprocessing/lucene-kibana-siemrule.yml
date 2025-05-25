@@ -1,0 +1,99 @@
+# lucene-kibana-siemrule.yml
+vars:
+  index_names: 
+    - "logstash-winlogbeat*"
+    - "winlogbeat-*"
+  schedule_interval: 1
+  schedule_interval_unit: m
+postprocessing:
+- type: template
+  template: |+
+    {
+      "id": "{{ rule.id }}",
+      "enabled": true,
+      "name": "SIGMA - {{ rule.title }}",
+      
+      "tags": [
+        {% for n in rule.tags -%}
+        "{{ n.namespace }}-{{ n.name }}"{% if not loop.last %},{%endif%}
+      {% endfor -%}
+      ],
+
+      "rule_type_id": "siem.queryRule",
+      "consumer": "siem",
+
+      "schedule": {
+        "interval": "{{ pipeline.vars.schedule_interval }}{{ pipeline.vars.schedule_interval_unit }}"
+      },
+
+      "actions": [],
+
+      "params": {
+        "author": [
+        {% if rule.author is string -%}
+          "{{rule.author}}"
+        {% else %}
+        {% for a in rule.author -%}
+          "{{ a }}"{% if not loop.last %},{%endif%}
+        {% endfor -%}
+        {% endif -%} 
+        ],
+        "description": "{{ rule.description }}",
+
+        "falsePositives": [
+        {% for fp in rule.falsepositives -%}
+          "{{ fp }}"{% if not loop.last %},{%endif%}
+        {% endfor -%}
+        ],
+
+        "from": "now-{{ pipeline.vars.schedule_interval }}{{ pipeline.vars.schedule_interval_unit }}",
+        "ruleId": "{{ rule.id }}",
+        "immutable": false,
+        "license": "DRL",
+        "outputIndex": "",
+        "meta": {
+          "from": "1m"
+        },
+        "maxSignals": 100,
+        "riskScore": (
+            self.severity_risk_mapping[rule.level.name]
+            if rule.level is not None
+            else 21
+        ),
+        "riskScoreMapping": [],
+        "severity": (
+            str(rule.level.name).lower() if rule.level is not None else "low"
+        ),
+        "severityMapping": [],
+        "threat": list(self.finalize_output_threat_model(rule.tags)),
+        "to": "now",
+        "references": {{ rule.references |tojson(indent=6)}},
+        "version": 1,
+        "exceptionsList": [],
+        "relatedIntegrations": [],
+        "requiredFields": [],
+        "setup": "",
+        "type": "query",
+        "language": "lucene",
+        "index": [
+        {% for index in pipeline.vars.index_names -%}
+          "{{ index }}"{% if not loop.last %},{%endif%}
+        {% endfor -%}
+        ],
+        "query": "{{ query }}",
+        "filters": []
+      },
+
+
+
+      "throttle": null,
+      "notify_when": null,
+      "mute_all": false,
+
+      "revision": {{ rule.revision }},
+
+      "mapped_params": {
+        "risk_score": {{ rule.risk_score }},
+        "severity": "{{ rule.severity }}"
+      },
+    }

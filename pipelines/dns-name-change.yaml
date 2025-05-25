@@ -1,0 +1,20 @@
+name: Override DNS Client Log Channel
+priority: 10
+transformations:
+  - id: dns_client_logsource_override
+    type: replace_string
+    regex: "Microsoft\\-Windows\\-DNS\\ Client\\ Events\\/Operational"
+    replacement: "Microsoft-Windows-DNS-Client/Operational"
+    rule_conditions:
+      - type: logsource
+        service: dns-client
+  
+  - id: dns_client_field_name_change
+    type: field_name_mapping
+    mapping:
+      dns.question.name: winlog.event_data.QueryName
+    rule_conditions:
+      - type: logsource
+        service: dns-client
+
+

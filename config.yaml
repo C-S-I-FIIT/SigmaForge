@@ -1,0 +1,33 @@
+kibana:
+  host: "http://<KIBANA-HOST>:5602"
+  username: "elastic"
+  password: "password"
+  ssl_verify: false
+  timeout: 5
+  space_id: "default"  # Kibana space to use
+
+sigma:
+  input_dir: "./rules"  # Default directory for input Sigma rules
+  output_dir: "./output"  # Default directory for output Elasticsearch queries
+  
+backend:
+  type: "lucene"  # Must be "lucene"
+  options:
+    schedule_interval: 1
+    schedule_interval_unit: "m"
+    collect_errors: true
+    index_names: ["logstash-winlogbeat*"]
+    version: "8.x"
+
+
+pipelines:
+  - "sysmon"
+  - "ecs_windows" # Winlogbeat from version >7.x
+  - "./pipelines/dns-name-change.yaml"
+  #- "./postprocessing/lucene-kibana-siemrule.yml"
+  
+rule_management:
+  auto_upload: true  # Automatically upload rules to Kibana
+  update_on_change: true  # Update existing rules if changes detected and bump version
+  manage_outdated: true  # Enable management of outdated rules
+  outdated_action: "disable"  # or "delete" to remove them completely, "disable" to disable them
